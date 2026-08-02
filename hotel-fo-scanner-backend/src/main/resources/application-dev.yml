@@ -1,0 +1,16 @@
+spring:
+  jpa:
+    show-sql: true
+
+app:
+  jwt:
+    # HANYA untuk local dev. Untuk staging/production, generate ulang dan simpan di secret manager,
+    # JANGAN commit secret asli ke git.
+    secret: NeSWnMpH6YSDG2TQrVXMFG9CxXNvhTfbkQtZUBTPwPqX7OOknoI9ieOK68iMX3/8
+
+  security:
+    encryption-key: MIU3udaiuSY18tMXTvCohleJdECZGaZWry3GBDl20sY=
+
+logging:
+  level:
+    com.hotelfo.scanner: DEBUG

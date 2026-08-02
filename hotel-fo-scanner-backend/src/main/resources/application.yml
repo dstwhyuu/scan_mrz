@@ -1,0 +1,52 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: hotel-fo-scanner-backend
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:hotel_fo_scanner}?useSSL=false&serverTimezone=Asia/Jakarta&characterEncoding=utf8
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    # PENTING: gunakan 'validate', BUKAN 'update'. Skema sudah dibuat manual via DDL,
+    # Hibernate hanya memvalidasi kecocokan entity dengan tabel saat startup.
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: Asia/Jakarta
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}                         # wajib di-set via env var, JANGAN hardcode di production
+    access-token-expiration-ms: 3600000            # 1 jam
+    refresh-token-expiration-ms: 604800000         # 7 hari
+
+  security:
+    encryption-key: ${PASSPORT_ENCRYPTION_KEY}     # base64, hasil dari `openssl rand -base64 32`
+
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+
+  ocr-service:
+    base-url: ${OCR_SERVICE_URL:http://localhost:8000}
+    internal-api-key: ${OCR_INTERNAL_API_KEY:}
+    timeout-ms: 15000
+
+logging:
+  level:
+    com.hotelfo.scanner: INFO
+    org.hibernate.SQL: WARN
