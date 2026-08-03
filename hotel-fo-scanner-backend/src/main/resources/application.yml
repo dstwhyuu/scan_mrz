@@ -6,10 +6,15 @@ spring:
     name: hotel-fo-scanner-backend
 
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:hotel_fo_scanner}?useSSL=false&serverTimezone=Asia/Jakarta&characterEncoding=utf8
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:scan_mrz}?useSSL=false&serverTimezone=Asia/Jakarta&characterEncoding=utf8
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: "0"
 
   jpa:
     # PENTING: gunakan 'validate', BUKAN 'update'. Skema sudah dibuat manual via DDL,

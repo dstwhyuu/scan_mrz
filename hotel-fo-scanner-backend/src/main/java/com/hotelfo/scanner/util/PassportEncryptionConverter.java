@@ -13,12 +13,15 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 /**
- * JPA AttributeConverter yang mengenkripsi/mendekripsi kolom sensitif (passportNumber)
+ * JPA AttributeConverter yang mengenkripsi/mendekripsi kolom sensitif
+ * (passportNumber)
  * secara transparan menggunakan AES-256-GCM.
  *
  * Format penyimpanan di DB: base64( IV[12 bytes] || ciphertext+tag ).
- * IV di-generate acak setiap kali enkripsi, sehingga hasil ciphertext untuk nilai yang
- * sama akan selalu berbeda (itulah kenapa pencarian harus lewat passportNumberHash,
+ * IV di-generate acak setiap kali enkripsi, sehingga hasil ciphertext untuk
+ * nilai yang
+ * sama akan selalu berbeda (itulah kenapa pencarian harus lewat
+ * passportNumberHash,
  * bukan lewat kolom ini).
  *
  * Anotasi @Component membuat Spring Boot otomatis meng-inject converter ini via
@@ -40,7 +43,7 @@ public class PassportEncryptionConverter implements AttributeConverter<String, S
         if (keyBytes.length != 16 && keyBytes.length != 24 && keyBytes.length != 32) {
             throw new IllegalStateException(
                     "app.security.encryption-key harus berupa base64 dari 16/24/32 byte (AES-128/192/256). " +
-                    "Generate dengan: openssl rand -base64 32");
+                            "Generate dengan: openssl rand -base64 32");
         }
         this.secretKey = new SecretKeySpec(keyBytes, "AES");
     }
@@ -69,7 +72,7 @@ public class PassportEncryptionConverter implements AttributeConverter<String, S
     }
 
     @Override
-    public String convertToAttribute(String dbValue) {
+    public String convertToEntityAttribute(String dbValue) {
         if (dbValue == null) {
             return null;
         }

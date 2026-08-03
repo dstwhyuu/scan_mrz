@@ -33,7 +33,7 @@ public class ScanLog {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, columnDefinition = "ENUM('SUCCESS','FAILED','MANUAL_CORRECTION','LOW_CONFIDENCE')")
     private ScanStatus status;
 
     @Column(name = "ocr_confidence_score", precision = 5, scale = 2)
@@ -48,7 +48,7 @@ public class ScanLog {
     @Column(name = "user_agent", length = 255)
     private String userAgent;
 
-    @Column(name = "scanned_at", nullable = false, updatable = false)
+    @Column(name = "scanned_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime scannedAt;
 
     @PrePersist

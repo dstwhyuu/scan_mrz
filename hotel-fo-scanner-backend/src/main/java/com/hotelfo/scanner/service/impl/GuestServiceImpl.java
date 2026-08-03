@@ -3,7 +3,6 @@ package com.hotelfo.scanner.service.impl;
 import com.hotelfo.scanner.dto.external.OcrFieldsPayload;
 import com.hotelfo.scanner.dto.request.GuestManualEntryRequest;
 import com.hotelfo.scanner.entity.Guest;
-import com.hotelfo.scanner.entity.ScanLog;
 import com.hotelfo.scanner.entity.enums.Gender;
 import com.hotelfo.scanner.entity.enums.ScanStatus;
 import com.hotelfo.scanner.exception.ResourceNotFoundException;
@@ -24,7 +23,8 @@ public class GuestServiceImpl implements GuestService {
 
     @Override
     @Transactional
-    public Guest findOrCreateFromOcr(OcrFieldsPayload fields, String mrzLine1, String mrzLine2, boolean checkDigitsValid) {
+    public Guest findOrCreateFromOcr(OcrFieldsPayload fields, String mrzLine1, String mrzLine2,
+            boolean checkDigitsValid) {
         String hash = HashUtil.sha256Hex(fields.getPassportNumber());
 
         return guestRepository.findByPassportNumberHashAndIssuingCountry(hash, fields.getIssuingCountry())
@@ -33,7 +33,7 @@ public class GuestServiceImpl implements GuestService {
     }
 
     private Guest createFromOcr(OcrFieldsPayload fields, String mrzLine1, String mrzLine2,
-                                 boolean checkDigitsValid, String hash) {
+            boolean checkDigitsValid, String hash) {
         Guest guest = Guest.builder()
                 .documentType(fields.getDocumentType() != null ? fields.getDocumentType() : "P")
                 .passportNumber(fields.getPassportNumber())
@@ -53,8 +53,9 @@ public class GuestServiceImpl implements GuestService {
     }
 
     private Guest updateFromOcr(Guest existing, OcrFieldsPayload fields, String mrzLine1, String mrzLine2,
-                                 boolean checkDigitsValid) {
-        // Tamu lama scan ulang (mis. ganti paspor / kunjungan baru) - refresh data yang mungkin berubah.
+            boolean checkDigitsValid) {
+        // Tamu lama scan ulang (mis. ganti paspor / kunjungan baru) - refresh data yang
+        // mungkin berubah.
         existing.setSurname(fields.getSurname());
         existing.setGivenNames(fields.getGivenNames());
         existing.setNationality(fields.getNationality());

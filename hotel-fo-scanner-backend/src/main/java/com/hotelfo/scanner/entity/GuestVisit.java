@@ -43,7 +43,7 @@ public class GuestVisit {
     @JoinColumn(name = "created_by", nullable = false, foreignKey = @ForeignKey(name = "fk_visits_user"))
     private User createdBy;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
     @PrePersist

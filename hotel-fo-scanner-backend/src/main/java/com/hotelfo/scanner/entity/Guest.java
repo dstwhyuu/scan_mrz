@@ -28,7 +28,7 @@ public class Guest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "document_type", nullable = false, length = 1)
+    @Column(name = "document_type", nullable = false, columnDefinition = "CHAR(1)")
     @Builder.Default
     private String documentType = "P";
 
@@ -36,10 +36,10 @@ public class Guest {
     @Column(name = "passport_number", nullable = false, length = 255)
     private String passportNumber;
 
-    @Column(name = "passport_number_hash", nullable = false, length = 64)
+    @Column(name = "passport_number_hash", nullable = false, columnDefinition = "CHAR(64)")
     private String passportNumberHash;
 
-    @Column(name = "issuing_country", nullable = false, length = 3)
+    @Column(name = "issuing_country", nullable = false, columnDefinition = "CHAR(3)")
     private String issuingCountry;
 
     @Column(nullable = false, length = 100)
@@ -48,14 +48,14 @@ public class Guest {
     @Column(name = "given_names", nullable = false, length = 100)
     private String givenNames;
 
-    @Column(nullable = false, length = 3)
+    @Column(nullable = false, columnDefinition = "CHAR(3)")
     private String nationality;
 
     @Column(name = "date_of_birth", nullable = false)
     private LocalDate dateOfBirth;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 1)
+    @Column(nullable = false, columnDefinition = "ENUM('M','F','X')")
     private Gender gender;
 
     @Column(name = "expiry_date", nullable = false)
@@ -71,10 +71,10 @@ public class Guest {
     @Builder.Default
     private boolean checkDigitsValid = false;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at", nullable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime updatedAt;
 
     @PrePersist

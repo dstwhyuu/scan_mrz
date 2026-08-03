@@ -37,13 +37,20 @@ Tanpa patch ini, insert data tamu pertama akan gagal dengan `Data too long for c
 - ✅ `POST /api/v1/guests` — input manual / koreksi hasil scan low-confidence (bisa di-link ke `scanLogId` asal)
 - ✅ `GET /api/v1/guests/{id}`
 
+- ✅ **Alur check-in lengkap**: `POST /api/v1/guests/{guestId}/visits` (check-in), `PATCH /api/v1/visits/{visitId}/room` (assign/ubah kamar), `PATCH /api/v1/visits/{visitId}/check-out`, `GET /api/v1/guests/{guestId}/visits` (riwayat kunjungan)
+
 ## Yang BELUM Diimplementasikan (langkah selanjutnya)
 
-- ⬜ `GuestVisitService` / endpoint check-in (assign kamar, tanggal check-in/out) — scan flow saat ini hanya membuat identitas `Guest`, belum membuat `GuestVisit`
 - ⬜ `ExcelExportService` (Apache POI) — endpoint `GET /api/v1/reports/daily`
 - ⬜ `ScanLogController` — audit trail untuk admin/supervisor
 - ⬜ Unit test & integration test (Testcontainers)
 - ⬜ **FastAPI OCR service itu sendiri** — endpoint `POST /internal/v1/ocr/extract-mrz` di kode Python belum dibuat; Spring Boot sudah siap memanggilnya begitu service itu jalan di `OCR_SERVICE_URL`
+
+### Aturan bisnis check-in yang sudah diberlakukan
+
+- 1 tamu hanya boleh punya **1 visit aktif** (belum check-out) di satu waktu — check-in kedua akan ditolak `409 Conflict` sampai visit pertama di-check-out.
+- Assign/ubah kamar dan check-out ditolak `409 Conflict` jika visit sudah berstatus check-out.
+- Tanggal check-out tidak boleh lebih awal dari tanggal check-in → `400 Bad Request`.
 
 ### ⚠️ Belum bisa dikompilasi/dites di sandbox ini
 
@@ -150,6 +157,32 @@ curl -X POST http://localhost:8080/api/v1/guests \
 ```bash
 export OCR_SERVICE_URL=http://localhost:8000
 export OCR_INTERNAL_API_KEY=<samakan dengan API key di FastAPI>
+```
+
+### 6. Test alur check-in
+
+```bash
+# Check-in (roomNumber & purposeOfStay opsional saat ini, bisa diisi belakangan)
+curl -X POST http://localhost:8080/api/v1/guests/1/visits \
+  -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{"roomNumber": "301", "purposeOfStay": "Business"}'
+
+# Assign / ubah kamar
+curl -X PATCH http://localhost:8080/api/v1/visits/1/room \
+  -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{"roomNumber": "512"}'
+
+# Check-out (checkOutDate opsional, default hari ini)
+curl -X PATCH http://localhost:8080/api/v1/visits/1/check-out \
+  -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+
+# Riwayat kunjungan tamu (berguna untuk repeat guest)
+curl http://localhost:8080/api/v1/guests/1/visits \
+  -H "Authorization: Bearer <accessToken>"
 ```
 
 ---
