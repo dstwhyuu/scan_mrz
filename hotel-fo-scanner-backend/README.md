@@ -33,14 +33,23 @@ Tanpa patch ini, insert data tamu pertama akan gagal dengan `Data too long for c
 - ✅ `GlobalExceptionHandler` — response error konsisten di semua endpoint
 - ✅ Dev data seeder — otomatis membuat akun admin saat pertama kali start di profile `dev`
 
+- ✅ **Alur scan lengkap**: `POST /api/v1/scans` — upload gambar → `OcrClientService` panggil FastAPI (RestClient, bukan WebClient) → evaluasi confidence & checksum → simpan `Guest` + `ScanLog`, atau kembalikan data parsial untuk dikoreksi
+- ✅ `POST /api/v1/guests` — input manual / koreksi hasil scan low-confidence (bisa di-link ke `scanLogId` asal)
+- ✅ `GET /api/v1/guests/{id}`
+
 ## Yang BELUM Diimplementasikan (langkah selanjutnya)
 
-- ⬜ `OcrClientService` — WebClient untuk memanggil FastAPI OCR service
-- ⬜ `ScanOrchestratorService` — orkestrasi: terima upload gambar → panggil OCR → validasi → simpan Guest + GuestVisit + ScanLog
-- ⬜ `GuestController` / `ScanController` — endpoint `POST /api/v1/scans`, `PUT /api/v1/guests/{id}`
+- ⬜ `GuestVisitService` / endpoint check-in (assign kamar, tanggal check-in/out) — scan flow saat ini hanya membuat identitas `Guest`, belum membuat `GuestVisit`
 - ⬜ `ExcelExportService` (Apache POI) — endpoint `GET /api/v1/reports/daily`
 - ⬜ `ScanLogController` — audit trail untuk admin/supervisor
 - ⬜ Unit test & integration test (Testcontainers)
+- ⬜ **FastAPI OCR service itu sendiri** — endpoint `POST /internal/v1/ocr/extract-mrz` di kode Python belum dibuat; Spring Boot sudah siap memanggilnya begitu service itu jalan di `OCR_SERVICE_URL`
+
+### ⚠️ Belum bisa dikompilasi/dites di sandbox ini
+
+Sandbox saya tidak punya akses ke Maven Central, jadi kode di atas **belum pernah di-`mvn compile`**.
+Tolong jalankan `mvn compile` di mesin Anda dan kirim balik pesan errornya kalau ada — biasanya cuma
+typo import atau versi dependency yang perlu disesuaikan.
 
 ---
 
@@ -99,7 +108,49 @@ Response yang diharapkan:
 ```
 
 Gunakan `accessToken` di header `Authorization: Bearer <token>` untuk mengakses endpoint
-terproteksi lain yang akan dibangun selanjutnya.
+terproteksi lain, termasuk dua contoh di bawah.
+
+### 4. Test endpoint scan (butuh FastAPI OCR service sudah jalan)
+
+```bash
+curl -X POST http://localhost:8080/api/v1/scans \
+  -H "Authorization: Bearer <accessToken>" \
+  -F "passportImage=@/path/ke/foto-paspor.jpg"
+```
+
+- Response `200 OK` jika confidence tinggi & checksum valid → `Guest` otomatis tersimpan.
+- Response `422 Unprocessable Entity` jika confidence rendah → `requiresManualReview: true`,
+  gunakan `partialData` untuk prefill form koreksi lalu kirim ke endpoint di bawah.
+
+### 5. Test endpoint input/koreksi manual
+
+```bash
+curl -X POST http://localhost:8080/api/v1/guests \
+  -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "scanLogId": 12,
+    "passportNumber": "A1234567",
+    "issuingCountry": "IDN",
+    "surname": "SANTOSO",
+    "givenNames": "BUDI",
+    "nationality": "IDN",
+    "dateOfBirth": "1990-05-10",
+    "gender": "M",
+    "expiryDate": "2029-05-10"
+  }'
+```
+
+`scanLogId` opsional — isi jika ini koreksi dari scan yang gagal/low-confidence, agar
+`scan_log` terkait ter-link ke `Guest` yang baru dibuat dan statusnya berubah jadi
+`MANUAL_CORRECTION`.
+
+### Konfigurasi tambahan untuk scan flow
+
+```bash
+export OCR_SERVICE_URL=http://localhost:8000
+export OCR_INTERNAL_API_KEY=<samakan dengan API key di FastAPI>
+```
 
 ---
 
