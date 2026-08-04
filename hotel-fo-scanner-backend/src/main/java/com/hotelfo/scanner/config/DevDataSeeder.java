@@ -6,19 +6,18 @@ import com.hotelfo.scanner.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 /**
- * Membuat 1 akun admin default saat aplikasi start, HANYA jika profile "dev" aktif.
- * Memudahkan testing endpoint /auth/login tanpa harus insert manual ke MySQL.
+ * Membuat 1 akun Front Office default saat pertama kali aplikasi start
+ * dan database masih kosong (belum ada user sama sekali).
  *
- * TIDAK aktif di production (tidak akan jalan tanpa -Dspring.profiles.active=dev).
+ * Setelah user pertama dibuat, user tersebut bisa menambah user baru
+ * melalui endpoint /api/v1/users.
  */
 @Slf4j
 @Component
-@Profile("dev")
 @RequiredArgsConstructor
 public class DevDataSeeder implements CommandLineRunner {
 
@@ -27,20 +26,20 @@ public class DevDataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (userRepository.existsByUsername("admin")) {
+        if (userRepository.count() > 0) {
             return;
         }
 
-        User admin = User.builder()
-                .username("admin")
-                .email("admin@hotelfo.local")
-                .passwordHash(passwordEncoder.encode("Admin@12345"))
-                .fullName("Administrator")
-                .role(Role.ADMIN)
+        User defaultUser = User.builder()
+                .username("frontoffice")
+                .email("frontoffice@hotel.local")
+                .passwordHash(passwordEncoder.encode("FrontOffice@12345"))
+                .fullName("Front Office")
+                .role(Role.FRONT_OFFICE)
                 .active(true)
                 .build();
 
-        userRepository.save(admin);
-        log.info(">>> Dev admin user seeded. username=admin | password=Admin@12345");
+        userRepository.save(defaultUser);
+        log.info(">>> Default user seeded. username=frontoffice | password=FrontOffice@12345");
     }
 }

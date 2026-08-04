@@ -6,11 +6,10 @@ public interface ExcelExportService {
     
     /**
      * Menghasilkan file Excel (.xlsx) berupa byte array untuk laporan tamu
-     * yang check-in pada rentang tanggal tertentu.
+     * yang di-scan pada tanggal tertentu.
      * 
-     * @param startDate tanggal awal
-     * @param endDate tanggal akhir (inklusif)
+     * @param date tanggal scan (berdasarkan created_at di tabel guests)
      * @return byte array dari file Excel
      */
-    byte[] generateDailyReport(LocalDate startDate, LocalDate endDate);
+    byte[] generateDailyReport(LocalDate date);
 }

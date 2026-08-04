@@ -1,8 +1,7 @@
 package com.hotelfo.scanner.service.impl;
 
 import com.hotelfo.scanner.entity.Guest;
-import com.hotelfo.scanner.entity.GuestVisit;
-import com.hotelfo.scanner.repository.GuestVisitRepository;
+import com.hotelfo.scanner.repository.GuestRepository;
 import com.hotelfo.scanner.service.ExcelExportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -22,14 +23,17 @@ import java.util.List;
 @Slf4j
 public class ExcelExportServiceImpl implements ExcelExportService {
 
-    private final GuestVisitRepository guestVisitRepository;
+    private final GuestRepository guestRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public byte[] generateDailyReport(LocalDate startDate, LocalDate endDate) {
-        log.info("Generating daily report for dates {} to {}", startDate, endDate);
-        
-        List<GuestVisit> visits = guestVisitRepository.findByCheckInDateBetween(startDate, endDate);
+    public byte[] generateDailyReport(LocalDate date) {
+        log.info("Generating daily report for date {}", date);
+
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        List<Guest> guests = guestRepository.findByCreatedAtBetween(startOfDay, endOfDay);
 
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -62,7 +66,7 @@ public class ExcelExportServiceImpl implements ExcelExportService {
             String[] columns = {
                 "No", "No. Paspor", "Negara Penerbit", "Kewarganegaraan", 
                 "Nama Depan", "Nama Belakang", "Tgl Lahir", "Jenis Kelamin",
-                "Tgl Check-in", "Tgl Check-out", "Kamar", "Tujuan Menginap", "Resepsionis"
+                "Tgl Expire", "Tanggal Scan"
             };
 
             // Create Header Row
@@ -74,12 +78,12 @@ public class ExcelExportServiceImpl implements ExcelExportService {
             }
 
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
             // Create Data Rows
             int rowIdx = 1;
-            for (GuestVisit visit : visits) {
+            for (Guest guest : guests) {
                 Row row = sheet.createRow(rowIdx);
-                Guest guest = visit.getGuest();
 
                 createCell(row, 0, String.valueOf(rowIdx), rowCellStyle);
                 createCell(row, 1, guest.getPassportNumber(), rowCellStyle);
@@ -89,11 +93,8 @@ public class ExcelExportServiceImpl implements ExcelExportService {
                 createCell(row, 5, guest.getSurname(), rowCellStyle);
                 createCell(row, 6, guest.getDateOfBirth() != null ? guest.getDateOfBirth().format(dateFormatter) : "-", rowCellStyle);
                 createCell(row, 7, guest.getGender() != null ? guest.getGender().name() : "-", rowCellStyle);
-                createCell(row, 8, visit.getCheckInDate() != null ? visit.getCheckInDate().format(dateFormatter) : "-", rowCellStyle);
-                createCell(row, 9, visit.getCheckOutDate() != null ? visit.getCheckOutDate().format(dateFormatter) : "-", rowCellStyle);
-                createCell(row, 10, visit.getRoomNumber() != null ? visit.getRoomNumber() : "-", rowCellStyle);
-                createCell(row, 11, visit.getPurposeOfStay() != null ? visit.getPurposeOfStay() : "-", rowCellStyle);
-                createCell(row, 12, visit.getCreatedBy() != null ? visit.getCreatedBy().getUsername() : "-", rowCellStyle);
+                createCell(row, 8, guest.getExpiryDate() != null ? guest.getExpiryDate().format(dateFormatter) : "-", rowCellStyle);
+                createCell(row, 9, guest.getCreatedAt() != null ? guest.getCreatedAt().format(dateTimeFormatter) : "-", rowCellStyle);
 
                 rowIdx++;
             }

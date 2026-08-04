@@ -35,7 +35,7 @@ public class User {
     private String fullName;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "ENUM('ADMIN','FRONT_OFFICE','SUPERVISOR')")
+    @Column(nullable = false, columnDefinition = "ENUM('FRONT_OFFICE')")
     private Role role;
 
     @Column(name = "is_active", nullable = false)

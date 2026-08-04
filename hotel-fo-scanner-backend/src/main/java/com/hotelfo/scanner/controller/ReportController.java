@@ -8,7 +8,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,17 +24,16 @@ public class ReportController {
 
     /**
      * Endpoint untuk mendownload laporan harian tamu dalam bentuk file Excel (.xlsx).
-     * Dapat diakses oleh FRONT_OFFICE, ADMIN, dan SUPERVISOR.
+     * Bisa diakses oleh semua user yang sudah login.
      */
     @GetMapping("/daily")
-    @PreAuthorize("hasAnyRole('FRONT_OFFICE', 'ADMIN', 'SUPERVISOR')")
     public ResponseEntity<Resource> downloadDailyReport(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         
         // Jika date kosong, default ke hari ini
         LocalDate filterDate = (date != null) ? date : LocalDate.now();
 
-        byte[] excelData = excelExportService.generateDailyReport(filterDate, filterDate);
+        byte[] excelData = excelExportService.generateDailyReport(filterDate);
         ByteArrayResource resource = new ByteArrayResource(excelData);
 
         String filename = "Laporan_Tamu_" + filterDate.toString() + ".xlsx";
