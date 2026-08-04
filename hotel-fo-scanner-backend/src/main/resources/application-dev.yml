@@ -11,6 +11,9 @@ app:
   security:
     encryption-key: MIU3udaiuSY18tMXTvCohleJdECZGaZWry3GBDl20sY=
 
+  ocr-service:
+    internal-api-key: dev-api-key-12345
+
 logging:
   level:
     com.hotelfo.scanner: DEBUG
